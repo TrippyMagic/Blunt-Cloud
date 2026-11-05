@@ -22,6 +22,10 @@ class VolumeMesh:
 
 
 def mesh(recipe):
+    if not recipe.get("sections"):
+        raise ValueError("Create sections and review their rings before generating a volume.")
+    if "step" not in recipe:
+        raise ValueError("The section recipe is missing its XY grid spacing (step).")
     step = float(recipe["step"])
     base, roof = map(float, recipe["extent"])
     sections = recipe["sections"]

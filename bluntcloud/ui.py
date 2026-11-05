@@ -8,12 +8,12 @@ import numpy as np
 from PySide6 import QtCore, QtGui, QtWidgets as W
 import vtkmodules.vtkInteractionStyle
 import vtkmodules.vtkRenderingOpenGL2
-from vtkmodules.qt.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor
+from .navigation import ModelView
 from vtkmodules.util.numpy_support import numpy_to_vtk, numpy_to_vtkIdTypeArray
 from vtkmodules.vtkCommonCore import vtkPoints
 from vtkmodules.vtkCommonDataModel import vtkPolyData, vtkCellArray, vtkPlane
 from vtkmodules.vtkFiltersGeneral import vtkVertexGlyphFilter
-from vtkmodules.vtkRenderingCore import vtkActor, vtkPolyDataMapper, vtkRenderer
+from vtkmodules.vtkRenderingCore import vtkActor, vtkPolyDataMapper
 
 from .application import catalog, current, revise
 from .cloud import load_cloud
@@ -40,7 +40,7 @@ class Window(W.QMainWindow):
         bar = self.addToolBar("Project")
         self.actions = []
         for title,slot in [("Open project",self.open),("Import",self.import_file),
-                           ("Create sections",self.propose),("Generate volume",lambda:self.run("generate")),
+                           ("Create sections",self.propose),("Generate volume",self.generate_volume),
                            ("Undo",lambda:self.run("undo")),("Redo",lambda:self.run("redo")),("Export",self.export)]:
             self.actions.append(bar.addAction(title,slot))
         self.cancel = bar.addAction("Cancel job",self.worker.kill)
@@ -64,11 +64,14 @@ class Window(W.QMainWindow):
         sidebar.addWidget(directory)
         self.files.setVisible(False)
         body.addWidget(sidebar)
-        self.vtk = QVTKRenderWindowInteractor()
+        self.vtk = ModelView()
         body.addWidget(self.vtk)
-        self.renderer = vtkRenderer()
-        self.renderer.SetBackground(.12,.16,.20)
-        self.vtk.GetRenderWindow().AddRenderer(self.renderer)
+        self.renderer = self.vtk.renderer
+        bar.addSeparator()
+        for i, plane in enumerate(self.vtk.PLANES, start=1):
+            action = bar.addAction(plane)
+            action.setToolTip(f"{plane} ({i} in the 3D view)")
+            action.triggered.connect(lambda checked=False, name=plane: self.vtk.view_plane(name))
         panel = W.QWidget()
         form = W.QFormLayout(panel)
         body.addWidget(panel)
@@ -228,6 +231,22 @@ class Window(W.QMainWindow):
             if ok:
                 self.run("import",path,unit)
 
+    def generate_volume(self):
+        if not self.recipe.get("sections"):
+            self.statusBar().showMessage("Use Create sections first, then review each section before generating the volume.")
+            return
+        for i, section in enumerate(self.recipe["sections"]):
+            if section["status"] not in ("approved", "empty"):
+                root = self.tree.topLevelItem(0)
+                for row in range(root.childCount()):
+                    item = root.child(row)
+                    if item.data(0, QtCore.Qt.UserRole) == i:
+                        self.tree.setCurrentItem(item)
+                        break
+                self.statusBar().showMessage("Review the selected rings, choose approved or empty, then click Apply section.")
+                return
+        self.run("generate")
+
     def propose(self):
         self.run("propose",*[str(p.value()) for p in self.params])
 
@@ -270,8 +289,14 @@ class Window(W.QMainWindow):
         self.worker.readAllStandardOutput()
         if self.job == "preview":
             if not code and self.preview.exists():
-                self.plot(np.load(self.preview,allow_pickle=False).reshape(-1,3),surface=True)
+                faces = np.load(self.preview,allow_pickle=False)
+                if not len(faces):
+                    self.statusBar().showMessage("The approved sections contain no occupied cells.")
+                    return
+                self.plot(faces.reshape(-1,3),surface=True)
                 self.vtk.GetRenderWindow().Render()
+                self.statusBar().showMessage(f"HEX8 volume visible ({len(faces):,} preview faces)")
+                return
         elif not code:
             if not self.refresh():
                 return
