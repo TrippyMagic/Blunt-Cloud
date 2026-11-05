@@ -1,0 +1,24 @@
+[project]
+name = "bluntcloud"
+version = "0.1.0"
+requires-python = ">=3.12,<3.13"
+dependencies = ["numpy==2.3.5", "shapely==2.1.2", "meshio==5.3.5", "ezdxf==1.4.5", "plyfile==1.1.5"]
+
+[project.scripts]
+bluntcloud = "bluntcloud.__main__:main"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["bluntcloud"]
+
+
+[project.optional-dependencies]
+desktop = ["pyside6-essentials==6.12.0", "vtk==9.7.2"]
+build = ["pyinstaller==6.22.3"]
+
+[project.gui-scripts]
+bluntcloud-desktop = "bluntcloud.ui:main"
+
