@@ -16,3 +16,7 @@ Name: "{userprograms}\Blunt-Cloud"; Filename: "{app}\BluntCloud.exe"
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
+
+[InstallDelete]
+Type: files; Name: "{app}\_internal\icuuc.dll"
+Type: files; Name: "{app}\_internal\icudt78.dll"
