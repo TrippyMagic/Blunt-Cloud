@@ -54,7 +54,10 @@ class Window(W.QMainWindow):
         self.files = W.QTreeView()
         self.file_model = W.QFileSystemModel(self.files)
         self.file_model.setReadOnly(True)
-        self.files.setModel(self.file_model)
+        self.file_filter = QtCore.QSortFilterProxyModel(self.files)
+        self.file_filter.setSourceModel(self.file_model)
+        self.file_filter.setFilterRegularExpression(r"^(?!\.bluntcloud$).*")
+        self.files.setModel(self.file_filter)
         self.files.setHeaderHidden(True)
         for column in range(1, self.file_model.columnCount()):
             self.files.hideColumn(column)
@@ -113,8 +116,11 @@ class Window(W.QMainWindow):
         folder = W.QFileDialog.getExistingDirectory(self,"Open or create project")
         if not folder:
             return False
+        if ".bluntcloud" in Path(folder).resolve().parts:
+            self.statusBar().showMessage("Choose the project folder outside private storage.")
+            return False
         self.project = Path(folder)
-        self.files.setRootIndex(self.file_model.setRootPath(str(self.project)))
+        self.files.setRootIndex(self.file_filter.mapFromSource(self.file_model.setRootPath(str(self.project))))
         self.files.setVisible(True)
         return self.refresh()
 

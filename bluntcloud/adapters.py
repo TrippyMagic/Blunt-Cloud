@@ -13,8 +13,8 @@ from .application import catalog, current, read_mesh
 
 def export(project, destination, accept_loss=False):
     target = Path(destination).resolve()
-    if target.is_relative_to(Path(project).resolve()):
-        raise ValueError("Save the exported file outside the project directory")
+    if target.is_relative_to((Path(project)/".bluntcloud").resolve()):
+        raise ValueError("Choose a destination outside private project storage")
     ext = target.suffix.lower()
     if ext not in {".dxf", ".vtu", ".inp", ".ply", ".stl"}:
         raise ValueError("Unknown export format")

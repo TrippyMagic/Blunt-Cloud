@@ -12,6 +12,7 @@ from plyfile import PlyData
 from shapely import MultiPoint
 
 from .application import catalog, current, revise
+from .storage import storage
 
 CHUNK = 65536
 
@@ -92,7 +93,7 @@ def import_cloud(project, source, unit):
     size = source.stat().st_size
     if shutil.disk_usage(project).free < 2*1024**3 + size:
         raise ValueError("Insufficient disk space to import the source")
-    directory = project / "clouds"
+    directory = storage(project) / "clouds"
     directory.mkdir(exist_ok=True)
     with tempfile.TemporaryDirectory(dir=directory) as staging:
         raw = Path(staging) / "source"
@@ -126,7 +127,7 @@ def load_cloud(project):
         if metadata is None:
             raise ValueError("Import a point cloud first")
 
-    directory = (Path(project)/"clouds").resolve()
+    directory = (storage(project)/"clouds").resolve()
     path = (directory/metadata["folder"]/"points").resolve()
     if not path.is_relative_to(directory):
         raise ValueError("Source path is outside the project")

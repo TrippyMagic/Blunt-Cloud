@@ -4,17 +4,16 @@ import io
 import json
 import sqlite3
 from contextlib import closing, contextmanager
-from pathlib import Path
 
 import numpy as np
 
 from .domain import VolumeMesh, mesh
+from .storage import storage
 
 
 @contextmanager
 def catalog(project):
-    path = Path(project)
-    path.mkdir(parents=True, exist_ok=True)
+    path = storage(project)
     with closing(sqlite3.connect(path / "project.sqlite")) as db, db:
         version = db.execute("pragma user_version").fetchone()[0]
         if version not in (0, 1):
