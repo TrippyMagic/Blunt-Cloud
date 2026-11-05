@@ -8,7 +8,7 @@ Avvio da checkout con Python gestito da uv:
 uv sync --locked --extra desktop
 uv run --no-sync bluntcloud-desktop
 ```
-Scegliere una directory progetto, importare la sorgente con la sua unità, impostare quote locali e generare le proposte. Ispezionare ciascun anello nella vista 2D, modificarne le coordinate e assegnare approved o empty. Generare il volume ed esportare fuori dalla directory progetto. Le coordinate sono disponibili anche in un editor JSON. La qualifica di usabilità rimane aperta.
+Scegliere una directory progetto, importare la sorgente con la sua unità, impostare quote locali e generare le proposte. Ispezionare ciascun anello nella vista 2D, modificarne le coordinate e assegnare approved o empty. Generare il volume ed esportare nella directory di lavoro o in un’altra destinazione utente. Le coordinate sono disponibili anche in un editor JSON. La qualifica di usabilità rimane aperta.
 La vista 3D sovrappone sorgente e contorno. Il worker prepara una copia di massimo 100.000 quadrilateri. La sezione selezionata comanda il piano di clipping.
 
 Il runtime è in inglese, inclusi i dialoghi Qt, la CLI e la diagnostica. Nella vista sezione si possono trascinare o cancellare vertici, disegnare un esterno o un foro e misurare una distanza con due clic. Apply section salva la modifica. La guida integrata è differita.
@@ -36,3 +36,13 @@ I pulsanti PV, PO e PL nella barra superiore richiamano le stesse viste ortograf
 ## Dal rilievo al volume visibile
 
 Dopo Import il progetto contiene soltanto la nuvola. Impostare i limiti e i passi in metri locali, poi scegliere **Create sections**. Per ogni quota verificare gli anelli, correggerli se necessario, scegliere **approved** (oppure **empty** con anelli vuoti) e premere **Apply section**. **Generate volume** indica il passaggio mancante e porta alla prima sezione da revisionare. Le stesse verifiche geometriche si applicano dalla CLI. A generazione riuscita, il worker carica il contorno del volume nella vista 3D; la barra di stato riporta il numero di facce in anteprima. Un volume vuoto viene segnalato esplicitamente.
+
+### Scelta del percorso e strumenti 2D
+
+Dopo Import scegliere **Grid volume** per generare un volume con una sola operazione dai punti. Per usare contorni interpretati dall'operatore scegliere **Create sections**. Le modalità dell'editor riguardano la sezione selezionata:
+- **Move vertex** trascina un vertice del contorno, Canc elimina i vertici selezionati.
+- **Draw outer ring** disegna il perimetro di una nuova regione di materiale. Clic sinistro per ogni vertice, destro per chiudere dopo almeno tre vertici.
+- **Draw hole** disegna un vuoto all'interno di una sola regione, con gli stessi comandi.
+- **Measure** misura la distanza in metri fra due clic nel piano della sezione.
+
+**Apply section** registra le modifiche e lo stato. Per varianti automatiche usare **Saved grids** e **Export**. Da CLI, dopo l'import, `grid-volume 0 1 0.2 0.2` usa nell'ordine base, tetto, passo Z e passo XY. Sono facoltativi `--full-height`, `--min-points N` e `--fill`. Il comando `grids` elenca le varianti e `restore-grid REVISION EXPECTED` ripristina la variante solo se la revisione corrente coincide con EXPECTED.

@@ -19,3 +19,5 @@ Nel setup interattivo i collegamenti Start e desktop sono selezionabili separata
 ### Rendering su GitHub Actions
 
 Il runner windows-2022 esegue i test Qt/VTK e lo smoke test del bundle con il backend software vtkOSOpenGLRenderWindow. Il workflow scarica Mesa 24.3.4 x64 nella cartella temporanea del runner, verifica SHA-256 e rende le DLL disponibili prima dei test. Il PATH isolato di PyInstaller tiene il renderer di CI fuori dal pacchetto distribuito. Lo smoke test lo ritrova nel PATH ripristinato. La verifica su GPU integrata resta un controllo sul target Windows 11.
+
+Sul PCD SoftwareX completo, in metri locali, con altezza automatica, passo XY e Z di 0,2 m e soglia un punto, la modalità occupata genera 19.755 celle. Il riempimento per strato ne genera 47.775. È un confronto tra ipotesi di discretizzazione. Gli oracoli piccoli in test_automatic_grid controllano invece volume analitico, ultimo strato parziale, persistenza, esportazione delle varianti e conservazione del progetto in caso di errore.

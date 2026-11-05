@@ -22,6 +22,7 @@ def catalog(project):
         db.execute("create table if not exists meshes(revision integer primary key, digest text, data blob)")
         db.execute("pragma user_version=1")
         db.execute("create table if not exists history(revision integer primary key, previous integer, redo integer)")
+        db.execute("create table if not exists variants(revision integer primary key)")
         yield db
 
 
@@ -66,19 +67,39 @@ def current(db):
 def generate(project):
     with catalog(project) as db:
         revision, recipe = current(db)
-    result = mesh(json.loads(recipe))
-    from .validation import quality
-    quality(result)
-    stream = io.BytesIO()
-    np.savez(stream, **vars(result))
-    data = stream.getvalue()
+    data = validated_payload(json.loads(recipe))
     with catalog(project) as db:
         db.execute("begin immediate")
         if current(db)[0] != revision:
             raise ValueError("The input revision changed during meshing")
-        db.execute("insert or replace into meshes values (?,?,?)",
-                   (revision, hashlib.sha256(data).hexdigest(), data))
+        store_mesh(db, revision, data)
     return revision
+
+
+def validated_payload(recipe):
+    result = mesh(recipe)
+    from .validation import quality
+    quality(result)
+    stream = io.BytesIO()
+    np.savez(stream, **vars(result))
+    return stream.getvalue()
+
+
+def store_mesh(db, revision, data):
+    db.execute("insert or replace into meshes values (?,?,?)",
+               (revision, hashlib.sha256(data).hexdigest(), data))
+
+
+def publish_variant(project, expected, recipe):
+    data = validated_payload(recipe)
+    with catalog(project) as db:
+        db.execute("begin immediate")
+        if current(db)[0] != expected:
+            raise ValueError("The project changed during automatic generation")
+        revision = append_revision(db, json.dumps(recipe, allow_nan=False), expected, None)
+        store_mesh(db, revision, data)
+        db.execute("insert into variants values (?)",(revision,))
+        return revision
 
 
 def read_mesh(db):
@@ -95,3 +116,31 @@ def read_mesh(db):
 
 
 
+
+def saved_grids(project):
+    with catalog(project) as db:
+        db.row_factory = sqlite3.Row
+        rows = db.execute("""select id, json_extract(recipe,'$.cloud.filename') as source,
+            json_extract(recipe,'$.step') as xy, json_extract(recipe,'$.spacing') as z,
+            json_extract(recipe,'$.extent[0]') as base, json_extract(recipe,'$.extent[1]') as roof,
+            json_extract(recipe,'$.min_points') as minimum, json_extract(recipe,'$.fill') as filled
+            from variants join revisions on id=revision order by id desc""")
+        return [dict(row) for row in rows]
+
+
+def restore_variant(project, target, expected):
+    with catalog(project) as db:
+        db.execute("begin immediate")
+        head, _ = current(db)
+        if head != expected:
+            raise ValueError("The project changed before variant selection")
+        row = db.execute("select r.recipe from revisions r join variants v on v.revision=r.id where r.id=?",
+                         (target,)).fetchone()
+        if not row:
+            raise ValueError("Unknown saved grid variant")
+        revision = append_revision(db, row[0], head, None)
+        copied = db.execute("insert into meshes select ?,digest,data from meshes where revision=?",
+                            (revision,target))
+        if copied.rowcount != 1:
+            raise ValueError("Missing saved grid mesh")
+        return revision

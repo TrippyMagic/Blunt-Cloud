@@ -36,6 +36,11 @@ def mesh(recipe):
             base <= levels[0] and levels[-1] <= roof and (np.diff(levels) > 0).all()):
         raise ValueError("Sample heights must increase within the specified base and roof")
     edges = np.r_[base, levels[:-1] + np.diff(levels)/2, roof]
+    if "layer_edges" in recipe:
+        edges = np.asarray(recipe["layer_edges"], dtype=np.float64)
+        if (edges.shape != (len(levels)+1,) or edges[0] != base or edges[-1] != roof or
+                not np.all((edges[:-1] < levels) & (levels < edges[1:]))):
+            raise ValueError("Invalid layer boundaries")
     nodes, cells, boundary, layers = {}, [], {}, []
     volume = 0.0
     candidates = 0

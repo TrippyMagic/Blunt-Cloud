@@ -15,7 +15,7 @@ from vtkmodules.vtkCommonDataModel import vtkPolyData, vtkCellArray, vtkPlane
 from vtkmodules.vtkFiltersGeneral import vtkVertexGlyphFilter
 from vtkmodules.vtkRenderingCore import vtkActor, vtkPolyDataMapper
 
-from .application import catalog, current, revise
+from .application import catalog, current, revise, saved_grids
 from .cloud import load_cloud
 from .editor import SectionView
 
@@ -40,6 +40,7 @@ class Window(W.QMainWindow):
         bar = self.addToolBar("Project")
         self.actions = []
         for title,slot in [("Open project",self.open),("Import",self.import_file),
+                           ("Grid volume",self.grid_dialog),("Saved grids",self.saved_grids),
                            ("Create sections",self.propose),("Generate volume",self.generate_volume),
                            ("Undo",lambda:self.run("undo")),("Redo",lambda:self.run("redo")),("Export",self.export)]:
             self.actions.append(bar.addAction(title,slot))
@@ -95,7 +96,14 @@ class Window(W.QMainWindow):
         modes = W.QComboBox()
         for label,mode in [("Move vertex","move"),("Draw outer ring","outer"),("Draw hole","hole"),("Measure","measure")]:
             modes.addItem(label,mode)
-        modes.setToolTip("Click to add a vertex. Right-click to close the ring. Delete removes selected vertices.")
+        hints = ["Drag a vertex. Delete removes selected vertices.",
+                 "Click perimeter vertices; right-click to close a material region.",
+                 "Click inside one outer ring; right-click to close a void.",
+                 "Click two points to measure their distance in metres."]
+        for index,hint in enumerate(hints):
+            modes.setItemData(index,hint,QtCore.Qt.ToolTipRole)
+        modes.setToolTip(hints[0])
+        modes.currentIndexChanged.connect(lambda i:modes.setToolTip(hints[i]))
         modes.currentIndexChanged.connect(lambda:setattr(self.section,"mode",modes.currentData()))
         self.section.changed.connect(lambda parts:self.edit.setPlainText(json.dumps(parts)))
         self.section.measured.connect(lambda length:self.statusBar().showMessage(f"{length:.6g} m"))
@@ -237,6 +245,66 @@ class Window(W.QMainWindow):
             if ok:
                 self.run("import",path,unit)
 
+    def grid_dialog(self):
+        if "cloud" not in self.recipe:
+            self.statusBar().showMessage("Import a point cloud first.")
+            return
+        dialog = W.QDialog(self)
+        dialog.setWindowTitle("Automatic grid volume")
+        form = W.QFormLayout(dialog)
+        full = W.QCheckBox("Use full cloud height")
+        full.setChecked(self.recipe.get("full_height", True))
+        form.addRow(full)
+        fields = []
+        base, roof = self.recipe.get("extent", [self.params[0].value(),self.params[1].value()])
+        for label,value in [("Base (m)",base),("Roof (m)",roof),
+                            ("Z spacing (m)",self.recipe.get("spacing",self.params[2].value())),
+                            ("XY spacing (m)",self.recipe.get("step",self.params[4].value()))]:
+            field = W.QDoubleSpinBox()
+            field.setDecimals(6)
+            field.setRange(-1e8 if len(fields)<2 else .000001,1e8)
+            field.setValue(value)
+            if len(fields)<2:
+                field.setDisabled(full.isChecked())
+                full.toggled.connect(field.setDisabled)
+            fields.append(field)
+            form.addRow(label,field)
+        hits = W.QSpinBox()
+        hits.setRange(1,1000000)
+        hits.setValue(self.recipe.get("min_points",1))
+        form.addRow("Minimum points per cell",hits)
+        fill = W.QCheckBox("Fill enclosed voids in each layer")
+        form.addRow(fill)
+        buttons = W.QDialogButtonBox(W.QDialogButtonBox.Ok | W.QDialogButtonBox.Cancel)
+        buttons.accepted.connect(dialog.accept)
+        buttons.rejected.connect(dialog.reject)
+        form.addRow(buttons)
+        if dialog.exec() == W.QDialog.Accepted:
+            options = ["--min-points",str(hits.value())]
+            if full.isChecked():
+                options.append("--full-height")
+            if fill.isChecked():
+                options.append("--fill")
+            self.run("grid-volume",*[str(f.value()) for f in fields],*options)
+
+    def saved_grids(self):
+        if self.project is None:
+            self.statusBar().showMessage("Open a project first")
+            return
+        rows = saved_grids(self.project)
+        if not rows:
+            self.statusBar().showMessage("Generate an automatic grid to save a variant.")
+            return
+        entries = {}
+        for row in rows:
+            mode = "filled" if row["filled"] else "occupied"
+            label = ("#{id} · {source} · XY {xy:g} / Z {z:g} m · "
+                     "{base:g} to {roof:g} m · min {minimum} · ").format(**row)
+            entries[label + mode] = row["id"]
+        choice,ok = W.QInputDialog.getItem(self,"Saved grids","Restore variant",list(entries),editable=False)
+        if ok:
+            self.run("restore-grid",str(entries[choice]),str(self.revision))
+
     def generate_volume(self):
         if not self.recipe.get("sections"):
             self.statusBar().showMessage("Use Create sections first, then review each section before generating the volume.")
@@ -257,7 +325,7 @@ class Window(W.QMainWindow):
         self.run("propose",*[str(p.value()) for p in self.params])
 
     def export(self):
-        path,_ = W.QFileDialog.getSaveFileName(self,"Export","","Volume (*.vtu *.inp);;Sections (*.dxf);;Surface (*.ply *.stl)")
+        path,_ = W.QFileDialog.getSaveFileName(self,"Export",str(self.project / f"volume-r{self.revision}.vtu") if self.project and self.recipe else "","Volume (*.vtu *.inp);;Sections (*.dxf);;Surface (*.ply *.stl)")
         if path:
             options = []
             if Path(path).suffix.lower() in {".stl",".ply"}:

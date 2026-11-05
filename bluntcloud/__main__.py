@@ -20,8 +20,18 @@ def main():
     section = commands.add_parser("propose")
     for parameter in ("base","roof","spacing","thickness","step"):
         section.add_argument(parameter,type=float)
+    grid = commands.add_parser("grid-volume")
+    for parameter in ("base","roof","spacing","step"):
+        grid.add_argument(parameter,type=float)
+    grid.add_argument("--min-points",type=int,default=1)
+    grid.add_argument("--full-height",action="store_true")
+    grid.add_argument("--fill",action="store_true")
+    restore = commands.add_parser("restore-grid")
+    restore.add_argument("revision",type=int)
+    restore.add_argument("expected",type=int)
     commands.add_parser("generate")
     commands.add_parser("inspect")
+    commands.add_parser("grids")
     commands.add_parser("recipe")
     commands.add_parser("undo")
     commands.add_parser("redo")
@@ -34,6 +44,16 @@ def main():
         if args.action == "import":
             from .cloud import import_cloud
             result = import_cloud(args.project,args.source,args.unit)
+        elif args.action == "grid-volume":
+            from .automatic import grid_volume
+            result = {"revision":grid_volume(args.project,args.base,args.roof,args.spacing,args.step,
+                                               args.min_points,args.fill,args.full_height)}
+        elif args.action == "grids":
+            from .application import saved_grids
+            result = saved_grids(args.project)
+        elif args.action == "restore-grid":
+            from .application import restore_variant
+            result = {"revision":restore_variant(args.project,args.revision,args.expected)}
         elif args.action == "propose":
             from .cloud import propose
             result = {"revision": propose(args.project,args.base,args.roof,args.spacing,args.thickness,args.step)}

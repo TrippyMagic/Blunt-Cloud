@@ -29,7 +29,7 @@ uv run --no-sync python -m bluntcloud --help
 uv run --no-sync python -m unittest discover -s tests -v
 ```
 
-Per il desktop usare `uv sync --locked --extra desktop`, quindi `uv run --no-sync bluntcloud-desktop`. L'ordine degli argomenti CLI è `bluntcloud PROJECT COMMAND`. Il percorso usuale è import → propose → revisione degli anelli → generate → inspect/export. Usare un progetto temporaneo per le prove di scrittura. Leggere [formato del progetto e job](docs/projects-and-jobs.md) prima di toccare transazioni o persistenza.
+Per il desktop usare `uv sync --locked --extra desktop`, quindi `uv run --no-sync bluntcloud-desktop`. L'ordine degli argomenti CLI è `bluntcloud PROJECT COMMAND`. Il percorso usuale è import → propose → revisione degli anelli → generate → inspect/export. In alternativa usare import → grid-volume → inspect/export e grids per l’elenco delle varianti. Usare un progetto temporaneo per le prove di scrittura. Leggere [formato del progetto e job](docs/projects-and-jobs.md) prima di toccare transazioni o persistenza.
 
 Per modifiche a dipendenze aggiornare manifest e lock insieme e verificare anche l'extra interessato. Per il packaging eseguire in PowerShell:
 
@@ -44,7 +44,7 @@ Il primo comando crea il bundle in directory e il relativo inventario. Il terzo 
 ## Contratti scientifici e di progetto
 
 - Conservare la sorgente immutata. Calcolare in metri locali con coordinate float64, mantenendo unità e origine per risalire al rilievo. Le copie ridotte servono alla visualizzazione.
-- Mantenere distinti punti osservati, sezioni approvate, volume HEX8 e superficie di contorno. La proposta corrente usa un inviluppo convesso per banda: può chiudere aperture o unire corpi. Richiedere revisione prima di generare il volume. Spessori, riempimenti e ipotesi strutturali richiedono evidenze o scelte esplicite.
+- Mantenere distinti punti osservati, sezioni approvate, volume HEX8 e superficie di contorno. Il percorso manuale propone l’inviluppo convesso per banda e richiede revisione. Il percorso grid-volume deriva le celle dall’occupazione osservata; consentire il riempimento dei fori solo su scelta esplicita. Conservare ricetta e mesh della variante nella stessa transazione. Spessori, riempimenti e ipotesi strutturali richiedono evidenze o scelte esplicite.
 - Identificare i nodi mediante indici interi della griglia. Conservare connettività intera a base zero nel dominio e applicare la numerazione richiesta nell'adattatore. Confrontare le facce condivise attraverso gli ID.
 - Distinguere spessore di osservazione, quota campione e limiti degli strati. Rispettare base e tetto, fori, sezioni vuote confermate e stato di revisione. Una componente persa alla risoluzione scelta richiede una diagnostica. Le regole complete e l'ordine dei nodi sono in [Geometria](docs/geometry.md).
 - Qualsiasi modifica, incluso undo/redo, crea una nuova revisione. Ricontrollare la revisione attesa nella transazione di pubblicazione. Consentire l'export solo della revisione corrente e verificare la rilettura del file temporaneo prima della sostituzione.
