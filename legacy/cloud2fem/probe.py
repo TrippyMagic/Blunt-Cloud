@@ -1,8 +1,8 @@
-"""Run from the repository root with python -m tests.legacy_probe."""
+"""Run from the repository root with python -m legacy.cloud2fem.probe."""
 import numpy as np
 import shapely
 from shapely.geometry import box
-from Polygons2FEM import make_mesh
+from .Polygons2FEM import make_mesh
 
 
 def probe(origin,side,step,levels):

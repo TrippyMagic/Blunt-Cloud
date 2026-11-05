@@ -20,6 +20,7 @@
 
 
 
+from pathlib import Path
 import shelve
 import numpy as np
 from pyntcloud import PyntCloud
@@ -32,10 +33,10 @@ from PyQt5.uic import loadUi
 import pyqtgraph as pg
 from pyqtgraph import PlotWidget
 
-from Vispy3DViewer import Visp3dplot
-import Cloud2Polygons as cp
-import Polygons2FEM as pf
-import plot2D as ptd
+from .Vispy3DViewer import Visp3dplot
+from .. import Cloud2Polygons as cp
+from .. import Polygons2FEM as pf
+from . import plot2D as ptd
 
 
 class MainContainer:
@@ -242,7 +243,7 @@ def loadpcl():
 class Window(QMainWindow):
     def __init__(self):
         super(Window, self).__init__()
-        loadUi("gui_main.ui", self)
+        loadUi(str(Path(__file__).with_name("gui_main.ui")), self)
         self.setWindowTitle('Cloud2FEM')
         self.graphlayout.setBackground((255, 255, 255))
         self.plot2d = self.graphlayout.addPlot()
@@ -790,7 +791,7 @@ class Window(QMainWindow):
 
 
     def copy_polylines(self):
-        copydialog = loadUi("gui_copypolylines_dialog.ui")
+        copydialog = loadUi(str(Path(__file__).with_name("gui_copypolylines_dialog.ui")))
         copydialog.setWindowTitle("Copy slice's polylines")
         copydialog.combo_copy_pl.clear()
 

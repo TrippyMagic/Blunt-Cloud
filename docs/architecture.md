@@ -1,7 +1,7 @@
 # Architettura del prototipo 0.1
 La CLI e la finestra Qt invocano lo stesso coordinatore. Il modulo domain rasterizza con NumPy e Shapely, validation verifica il complesso esaedrico generato, application pubblica le revisioni. cloud e adapters isolano lettori e scrittori. La finestra invoca la CLI in un processo QProcess anche nel bundle. Gli array rimangono sul disco del progetto.
 
-La scelta di Qt Widgets e VTK riusa gli strumenti scientifici Python e consente il picking in una vista nativa. Tauri richiederebbe anche un runtime web offline e un ponte per la geometria. Una riscrittura C++ richiederebbe un secondo motore da verificare. Un kernel nativo sarà valutato dopo profiling. Il legacy resta accessibile dall'entry point originale.
+La scelta di Qt Widgets e VTK riusa gli strumenti scientifici Python e consente il picking in una vista nativa. Tauri richiederebbe anche un runtime web offline e un ponte per la geometria. Una riscrittura C++ richiederebbe un secondo motore da verificare. Un kernel nativo sarà valutato dopo profiling. La GUI storica è archiviata separatamente. Dal checkout, nel suo ambiente PyQt5 originale, si avvia con `python -m legacy.cloud2fem.gui.main_Cloud2FEM`.
 
 Avvio da checkout con Python gestito da uv:
 ```powershell

@@ -26,9 +26,8 @@ with zipfile.ZipFile(bundle/"application-source.zip","w",zipfile.ZIP_DEFLATED) a
         for path in (root/folder).rglob("*"):
             if path.is_file() and "__pycache__" not in path.parts:
                 archive.write(path,path.relative_to(root))
-    for pattern in ("*.py","*.ui","README*","LICENSE*","uv.lock","pyproject.toml"):
-        for path in root.glob(pattern):
-            archive.write(path,path.name)
+    for name in ("desktop_launcher.py", "README.md", "LICENSE.txt", "uv.lock", "pyproject.toml"):
+        archive.write(root / name, name)
 dlls = {}
 for pattern in ("*.dll","*.pyd"):
     for lib in bundle.rglob(pattern):
