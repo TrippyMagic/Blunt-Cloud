@@ -7,6 +7,17 @@ jobs:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v6
       - run: uv sync --locked --extra desktop --extra build
+      - name: Configure offscreen OpenGL for desktop checks
+        shell: pwsh
+        run: |
+          $archive = Join-Path $env:RUNNER_TEMP "mesa.7z"
+          $mesa = Join-Path $env:RUNNER_TEMP "mesa"
+          Invoke-WebRequest "https://github.com/pal1000/mesa-dist-win/releases/download/24.3.4/mesa3d-24.3.4-release-msvc.7z" -OutFile $archive
+          if ((Get-FileHash $archive).Hash -ne "7EBC711AD1896AC88AB21E142F1017F8FF035F0F342BDB72FBB5E2EB881BA363") { throw "Mesa checksum mismatch" }
+          7z x $archive "-o$mesa" "x64/*" -y
+          if ($LASTEXITCODE -or !(Test-Path "$mesa/x64/osmesa.dll")) { throw "OSMesa extraction failed" }
+          "$mesa/x64" >> $env:GITHUB_PATH
+          "VTK_DEFAULT_OPENGL_WINDOW=vtkOSOpenGLRenderWindow" >> $env:GITHUB_ENV
       - run: uv run --no-sync python -m unittest discover -s tests -v
       - shell: pwsh
         run: ./packaging/build.ps1

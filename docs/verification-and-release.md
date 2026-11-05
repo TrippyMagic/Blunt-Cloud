@@ -15,3 +15,7 @@ Prova locale del 5 novembre 2026 su Windows 10. Import gestito del PCD originale
 La build Windows limita il PATH di PyInstaller alla virtualenv e alle directory di sistema. Una build locale aveva raccolto la icuuc.dll di Poppler, incompatibile con QtCore. Prima di creare l'inventario si esegue BluntCloud.exe --smoke-desktop per istanziare la finestra Qt e renderizzare con VTK. Il setup rimuove le due DLL ICU estranee eventualmente lasciate dalla versione precedente.
 
 Nel setup interattivo i collegamenti Start e desktop sono selezionabili separatamente. Alla prima installazione Start è selezionato e desktop è facoltativo. L'ultima pagina offre Launch Blunt-Cloud; le installazioni silenziose saltano l'avvio. Il disinstallatore per utente è disponibile in Impostazioni Windows, App installate. Rimuove i file distribuiti e i collegamenti creati dal setup.
+
+### Rendering su GitHub Actions
+
+Il runner windows-2022 esegue i test Qt/VTK e lo smoke test del bundle con il backend software vtkOSOpenGLRenderWindow. Il workflow scarica Mesa 24.3.4 x64 nella cartella temporanea del runner, verifica SHA-256 e rende le DLL disponibili prima dei test. Il PATH isolato di PyInstaller tiene il renderer di CI fuori dal pacchetto distribuito. Lo smoke test lo ritrova nel PATH ripristinato. La verifica su GPU integrata resta un controllo sul target Windows 11.
