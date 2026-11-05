@@ -13,3 +13,5 @@ La vista 3D sovrappone sorgente e contorno. Il worker prepara una copia di massi
 
 Il runtime è in inglese, inclusi i dialoghi Qt, la CLI e la diagnostica. Nella vista sezione si possono trascinare o cancellare vertici, disegnare un esterno o un foro e misurare una distanza con due clic. Apply section salva la modifica. La guida integrata è differita.
 
+
+Al primo Import, Blunt-Cloud chiede la cartella del progetto prima di aprire il selettore della nuvola. La colonna sinistra distingue Project, con sorgente e derivati, da Working directory, che mostra in sola lettura la cartella selezionata e segue le modifiche del filesystem.
