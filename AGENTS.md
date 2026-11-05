@@ -65,3 +65,5 @@ Documentare in [docs](docs/architecture.md) ciò che il codice fa, con condizion
 - Eseguire il benchmark originale separatamente dai test ordinari. Registrare commit, hardware, dipendenze, parametri e fase misurata. Per prestazioni e certificazione offline seguire il [protocollo di rilascio](docs/verification-and-release.md).
 - Per modifiche alla UI verificare anche l'interazione reale interessata. Per modifiche a worker o packaging provare il percorso dall'eseguibile congelato. Riportare i controlli effettivamente eseguiti e i gate ancora aperti.
 - Controllare branch, working tree e indice prima di intervenire. Preservare il lavoro già presente. Tenere i commit atomici, con messaggi di commit e PR in inglese. Seguire la destinazione richiesta per il push.
+
+Per le modifiche al prodotto, rigenerare sempre l'eseguibile Windows con lo script di build, verificare il bundle, creare commit atomici in inglese e pubblicarli su master salvo diversa indicazione. La ricetta dell'installer va modificata solo quando cambia il comportamento del setup.
