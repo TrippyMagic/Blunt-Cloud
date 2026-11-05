@@ -13,3 +13,5 @@ Target Windows 11 x64 su SSD, 16 GB e GPU integrata. Registrare CPU/GPU/driver, 
 Prova locale del 5 novembre 2026 su Windows 10. Import gestito del PCD originale in 0,326 s. Con quote sorgente da 0,025 m a passo 0,2 m e banda 0,005 m sono state predisposte 60 proposte da 263.094 osservazioni in 1,156 s. Una sola esecuzione.
 
 La build Windows limita il PATH di PyInstaller alla virtualenv e alle directory di sistema. Una build locale aveva raccolto la icuuc.dll di Poppler, incompatibile con QtCore. Prima di creare l'inventario si esegue BluntCloud.exe --smoke-desktop per istanziare la finestra Qt e renderizzare con VTK. Il setup rimuove le due DLL ICU estranee eventualmente lasciate dalla versione precedente.
+
+Nel setup interattivo i collegamenti Start e desktop sono selezionabili separatamente. Alla prima installazione Start è selezionato e desktop è facoltativo. L'ultima pagina offre Launch Blunt-Cloud; le installazioni silenziose saltano l'avvio. Il disinstallatore per utente è disponibile in Impostazioni Windows, App installate. Rimuove i file distribuiti e i collegamenti creati dal setup.
