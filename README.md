@@ -1,3 +1,9 @@
+# Blunt-Cloud
+
+Applicazione desktop in sviluppo per nuvole di punti, sezioni e mesh HEX8. [Avvio e architettura](docs/architecture.md) · [Geometria](docs/geometry.md) · [Formati](docs/formats.md) · [Stato della release](docs/verification-and-release.md) · [Backlog](specs/README.md).
+
+## Distribuzione originale Cloud2FEM
+
 ____________________________________________________________________________________________________________
 # Cloud2FEM
 A finite element mesh generator based on point clouds of existing/historical structures
@@ -69,4 +75,3 @@ Once selected the faulty slice from the drop-down list in the left panel, the us
 Once the editing on a slice has been completed, red markers on the right panel indicate the steps that
 have to be performed again in order to be refreshed with the applied changes. As an example, if changes
 are applied in the Centroids edit mode, steps n° 8, 9 and 11 must be executed before exporting the mesh.
-
